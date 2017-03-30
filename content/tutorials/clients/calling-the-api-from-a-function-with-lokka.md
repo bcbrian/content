@@ -77,22 +77,20 @@ Let's look at the code together. We setup Lokka to connect to our project endpoi
 ```js
 const {Lokka} = require('lokka')
 const {Transport} = require('lokka-transport-http')
-
-const headers = {
-  'Authorization': 'Bearer __PERMANENT_AUTH_TOKEN__'
-}
-
-const client = new Lokka({
-  transport: new Transport('https://api.graph.cool/simple/v1/__PROJECT_ID__', {headers})
-})
 ```
-
-Make sure to insert your endpoint and permanent auth token.
 
 In the exported function, we get the post and user id from the context data and use it to call the `addToLikedPosts` mutation:
 ```js
 module.exports = (context, cb) => {
   console.log(context)
+  
+  const headers = {
+    'Authorization': `Bearer ${context.secrets.graphCoolAuthToken}`
+  }
+
+  const client = new Lokka({
+    transport: new Transport('https://api.graph.cool/simple/v1/__PROJECT_ID__', {headers})
+  })
 
   const postId = context.data.createdNode.id
   const userId = context.data.createdNode.author.id
@@ -137,7 +135,18 @@ wt create build/like-posts-lokka.js
 
 Copy the webtask url for later use.
 
-## 3. Creating the mutation callback
+## 3. Add the permant auth token to webtask secrets
+
+```sh
+wt edit build/like-posts-lokka.js
+```
+
+Look for the setting icon in the top of the page editor. Then click on `secrets`, then `Add secret`.
+For the key put in `graphCoolAuthToken` and add a perment auth token from graph cool.
+
+Now 
+
+## 4. Creating the mutation callback
 
 Head over to your mutation callbacks in the Console and create a new mutation callback with the trigger `Post` `is created`.
 
@@ -186,7 +195,7 @@ mutation {
 
 Now switch back to the webtask logs and confirm that the webtask worked as expected. You can also go to the databrowser and check if your `User` node has a new post in its `likedPosts` field.
 
-## 4. Next steps
+## 5. Next steps
 
 Communicating to your API is as simple as that!
 
